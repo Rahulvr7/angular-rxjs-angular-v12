@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 
 @Component({
@@ -10,12 +11,14 @@ import { ApiService } from './api.service';
 export class AppComponent implements OnInit{
   name:any = '';
   users$!: Observable<Array<{name: string}>>;
+  refresh$ = new BehaviorSubject<boolean>(true);
   constructor(private api: ApiService) {}
   ngOnInit() {
-    this.users$ = this.api.getUsers();
+    this.users$ = this.refresh$.pipe(switchMap(_ => this.api.getUsers()));
   }
 
   addUser() {
+    this.refresh$.next(true);
     this.api.addUser(this.name);
     this.name = '';
   }
